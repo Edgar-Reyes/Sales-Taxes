@@ -80,7 +80,7 @@ namespace Sales.Controllers
         {
             var receipt = string.Empty;
             var itemsList = GetItemList();
-            var itemGroups = itemsList?.DistinctBy(x => x.Name);
+            var itemGroups = itemsList?.GroupBy(x => new { x.Imported, x.Name, x.FinalPrice }).Select(y => y.First()).ToList();
             var itemCount = 0;
             var groupTotal = 0.00M;
             var receiptLine = string.Empty;
@@ -89,7 +89,7 @@ namespace Sales.Controllers
 
             foreach (var group in itemGroups)
             {
-                itemCount = itemsList.Where(x => x.Name == group.Name).Count();
+                itemCount = itemsList.Where(x => x.Name == group.Name && x.Imported == group.Imported && x.FinalPrice == group.FinalPrice).Count();
                 groupTotal = itemsList.Sum(x => x.FinalPrice);
                 importedLegend = (group.Imported) ? "Imported " : string.Empty;
                 countLegend = (itemCount > 1) ? $" ({itemCount} @ {group.FinalPrice})" : string.Empty;
@@ -145,7 +145,7 @@ namespace Sales.Controllers
 
         private string GetItemName(string name)
         {
-            return name.Replace("Imported", string.Empty);
+            return name.Replace("Imported", string.Empty).Trim();
         }
 
         /// <summary>

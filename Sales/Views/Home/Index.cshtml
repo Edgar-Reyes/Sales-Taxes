@@ -1,0 +1,179 @@
+﻿@model List<ItemModel>
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<style>
+    #ErrorMessages {
+        height: 75px;
+    }
+</style>
+
+<div class="row">
+    <p>There are two ways to add a new item, firts one is using a form and the second one using an input line</p>
+    <p>Validations and receipt generation are located in HomeController, Tax calculations are defined in ItemModel class.</p>
+</div>
+
+<div class="row">
+    <h2>Method by form</h2>
+    <p>This form contains validations (jQuery validation).</p>
+</div>
+
+@using (Html.BeginForm("SaveItemForm", "Home", FormMethod.Post, new { id = "AddItemForm" }))
+{
+    <div class="input-group">
+        <span class="input-group-text">Quantity</span>
+        <input id="Quantity" name="Quantity" type="text" class="form-control" placeholder="Quantity" aria-label="Quantity">
+
+        <div class="input-group-text">
+            <input id="Imported" name="Imported" class="form-check-input mt-0" type="checkbox" value="true" aria-label="Checkbox for import duty">&nbsp;Imported
+        </div>
+
+        <span class="input-group-text">Product</span>
+        <input id="Name" name="Name" type="text" class="form-control" placeholder="Product Name" aria-label="Product Name">
+
+        <div class="input-group-text">
+            <input id="Exempted" name="Exempted" class="form-check-input mt-0" type="checkbox" value="true" aria-label="Checkbox for exempt from basic sales tax">&nbsp;Exempt tax
+        </div>
+
+        <span class="input-group-text">Price</span>
+        <input id="Price" name="Price" type="text" class="form-control" placeholder="Price" aria-label="Price">
+
+        <button class="btn btn-outline-secondary" type="submit" id="addProductBtn">Add</button>
+    </div>
+    <div id="ErrorMessages"></div>
+}
+
+<div class="mt-3">
+    <h2>Method by input line.</h2>
+    <p>This method accepts the following format: "[Quantity] [Imported|] [Product Name] [at] [Price]" (i.e., 1 Imported bottle of perfume at 27.99)</p>
+</div>
+<div class="row mb-3">
+    <div class="col">
+        @if (ViewBag.BadInputFormat != null)
+        {
+            <div class="alert alert-danger" role="alert">
+                Bad input format
+            </div>
+        }
+        @using (Html.BeginForm("SaveInputForm", "Home", FormMethod.Post, new { id = "AddInputForm" }))
+        {
+            <div class="input-group">
+                <input name="Input" type="text" class="form-control" placeholder="Input" aria-label="Input">
+                <button class="btn btn-outline-secondary" type="submit">Add</button>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="row">
+    @using (Html.BeginForm("RemoveItemsForm", "Home", FormMethod.Post, new { id = "RemoveItemsForm" }))
+    {
+        <button type="submit" class="btn btn-danger">Remove items</button>
+    }
+</div>
+
+<div class="row">
+    <div class="col">
+
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Quantity</th>
+                    <th>Imported</th>
+                    <th>Name</th>
+                    <th>Exempted of tax</th>
+                    <th>Price</th>
+                    <th>Sales Tax</th>
+                    <th>Rounded Sales Tax</th>
+                    <th>Imported Tax</th>
+                    <th>Rounded Imported Tax</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null)
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Quantity</td>
+                            <td>@item.Imported</td>
+                            <td>@item.Name</td>
+                            <td>@item.Exempted</td>
+                            <td>@item.Price</td>
+                            <td>@item.SalesTax</td>
+                            <td>@item.RoundedSalesTax</td>
+                            <td>@item.ImportedTax</td>
+                            <td>@item.RoundedImportedTax</td>
+                            <td>@item.FinalPrice</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row">
+    @using (Html.BeginForm("PrintReceiptForm", "Home", FormMethod.Post, new { id = "PrintReceiptForm" }))
+    {
+        <button type="submit" class="btn btn-primary">Print receipt</button>
+    }
+</div>
+
+@if (ViewBag.Receipt != null)
+{
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Receipt</h5>
+            <p class="card-text" style="white-space: pre-line">@ViewBag.Receipt.ToString()</p>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+ }
+
+<script type="text/javascript">
+
+    //Use of jquery validation library to validate input data from client side
+    $('#AddItemForm').validate({
+        errorPlacement: function(error, element) {
+            $('#ErrorMessages').append(error).append('<br>');
+        },
+        rules: {
+            Quantity: {
+                required: true,
+                number: true
+            },
+            Name: {
+                required: true
+            },
+            Price: {
+                required: true,
+                number: true
+            }
+        },
+        messages: {
+            Quantity: {
+                required: "Quantity is required",
+                number: "Enter a valid Quantity"
+            },
+            Name: {
+                required: "Product Name is required"
+            },
+            Price: {
+                required: "Price is required",
+                number: "Enter a valid Price"
+            }
+        }
+    });
+
+
+</script>
+}
+
